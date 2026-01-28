@@ -1,0 +1,66 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "default",
+            "hidden": true,
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/out/${presetName}/bin",
+            "installDir": "${sourceDir}/out/${presetName}/install",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+                "VCPKG_FEATURE_FLAGS": "manifests"
+            }
+        },
+        {
+            "name": "debug-macos-intel",
+            "inherits": "default",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-osx",
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "debug-macos-silicon",
+            "inherits": "default",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "arm64-osx",
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "release-macos-intel",
+            "inherits": "default",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-osx",
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "release-macos-silicon",
+            "inherits": "default",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "arm64-osx",
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "debug-macos-intel",
+            "configurePreset": "debug-macos-intel"
+        },
+        {
+            "name": "debug-macos-silicon",
+            "configurePreset": "debug-macos-silicon"
+        },
+        {
+            "name": "release-macos-intel",
+            "configurePreset": "release-macos-intel"
+        },
+        {
+            "name": "release-macos-silicon",
+            "configurePreset": "release-macos-silicon"
+        }
+    ]
+}

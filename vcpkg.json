@@ -1,0 +1,8 @@
+{
+  "name": "alcove",
+  "version": "1.0",
+  "dependencies": [
+    "fmt",
+    "cxxopts"
+  ]
+}
