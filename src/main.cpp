@@ -1,6 +1,6 @@
 #include <cxxopts.hpp>
 #include <fmt/core.h>
-#include "core.hpp"
+#include "alcove.hpp"
 
 void print_logo();
 
@@ -25,8 +25,6 @@ int main(int arg_count, char* args[]) {
         return 1;
     }
 
-    alcove::Core core;
-    
     if (result.count("help")) {
         fmt::println("{}", options.help());
         return 0;
@@ -51,9 +49,9 @@ int main(int arg_count, char* args[]) {
             std::string domain_mask = records[i + 1];
 
             int record_index;
-            auto result = core.add_record(ip, domain_mask, &record_index);
+            auto result = alcove::add_record(ip, domain_mask, &record_index);
 
-            if (result != alcove::alcove_result::SUCCESS) {
+            if (result != alcove::result::SUCCESS) {
                 fmt::println("Failed to add record: {}", alcove::get_alcove_error(result));
                 return 1;
             }
@@ -66,9 +64,9 @@ int main(int arg_count, char* args[]) {
     
     if (result.count("delete")) {
         auto record_index = result["delete"].as<int>();
-        auto result = core.delete_record(record_index);
+        auto result = alcove::delete_record(record_index);
 
-        if (result != alcove::alcove_result::SUCCESS) {
+        if (result != alcove::result::SUCCESS) {
             fmt::println("Failed to delete record: {}", alcove::get_alcove_error(result));
             return 1;
         }

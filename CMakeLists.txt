@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.20)
 project(alcove LANGUAGES CXX)
 
 add_executable(alcove "src/main.cpp"
-    "src/core.cpp")
+    "src/alcove.cpp")
 
 set_property(TARGET alcove PROPERTY CXX_STANDARD 20)
 
