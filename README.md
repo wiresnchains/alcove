@@ -23,3 +23,14 @@ To build the project, you will need to install [CMake](https://cmake.org) and [v
 cmake --preset debug-macos-intel
 cmake --build --preset debug-macos-intel
 ```
+
+## Usage
+
+```sh
+sudo alcove --help
+sudo alcove --add mydomain.ltd,192.168.0.1
+sudo alcove --list
+sudo alcove --delete 0
+```
+
+Tip: you can also use shorter options such as `-a` instead of `--add`.
