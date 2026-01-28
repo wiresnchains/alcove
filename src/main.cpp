@@ -11,10 +11,12 @@ int main(int arg_count, char* args[]) {
         ("h,help", "Displays help menu")
         ("v,version", "Displays version")
         ("l,list", "List all active tunnels")
-        ("a,add", "Add a new tunnel")
+        ("a,add", "Add a new tunnel", cxxopts::value<std::vector<std::string>>())
         ("d,delete", "Delete a tunnel", cxxopts::value<int>())
         ("s,shutdown", "Delete all active tunnels");
-    
+
+    options.parse_positional({"add"});
+
     cxxopts::ParseResult result;
 
     try {
@@ -38,18 +40,28 @@ int main(int arg_count, char* args[]) {
     }
 
     if (result.count("add")) {
-        std::string ip = "192.168.0.1";
-        std::string domain_mask = "alcove.local";
+        auto records = result["add"].as<std::vector<std::string>>();
+        auto record_count = records.size();
 
-        int record_index;
-        auto result = core.add_record(ip, domain_mask, &record_index);
-
-        if (result != alcove::alcove_result::SUCCESS) {
-            fmt::println("Failed to add record: {}", alcove::get_alcove_error(result));
+        if (record_count % 2 != 0) {
+            fmt::println("Please provide pairs of ip and domain mask");
             return 1;
         }
 
-        fmt::println("Added record {} ({} -> {})", record_index, ip, domain_mask);
+        for (int i = 0; i + 1 < record_count; i+= 2) {
+            std::string ip = records[i];
+            std::string domain_mask = records[i + 1];
+
+            int record_index;
+            auto result = core.add_record(ip, domain_mask, &record_index);
+
+            if (result != alcove::alcove_result::SUCCESS) {
+                fmt::println("Failed to add record: {}", alcove::get_alcove_error(result));
+                return 1;
+            }
+
+            fmt::println("Added record {} ({} -> {})", record_index, ip, domain_mask);
+        }
 
         return 0;
     }
