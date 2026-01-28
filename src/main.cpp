@@ -34,6 +34,20 @@ int main(int arg_count, char* args[]) {
         print_logo();
         return 0;
     }
+    
+    if (result.count("list")) {
+        std::vector<alcove::record_entry> records;
+        if (auto result = alcove::find_all_records(&records); result != alcove::result::SUCCESS) {
+            fmt::println("Failed to find all records: {}", alcove::get_alcove_error(result));
+            return 1;
+        }
+
+        for (const auto& record : records) {
+            fmt::println("{} | {} -> {}", record.idx, record.ip, record.domain);
+        }
+
+        return 0;
+    }
 
     if (result.count("add")) {
         auto records = result["add"].as<std::vector<std::string>>();
@@ -49,9 +63,8 @@ int main(int arg_count, char* args[]) {
             std::string domain_mask = records[i + 1];
 
             int record_index;
-            auto result = alcove::add_record(ip, domain_mask, &record_index);
 
-            if (result != alcove::result::SUCCESS) {
+            if (auto result = alcove::add_record(ip, domain_mask, &record_index); result != alcove::result::SUCCESS) {
                 fmt::println("Failed to add record: {}", alcove::get_alcove_error(result));
                 return 1;
             }
@@ -64,14 +77,24 @@ int main(int arg_count, char* args[]) {
     
     if (result.count("delete")) {
         auto record_index = result["delete"].as<int>();
-        auto result = alcove::delete_record(record_index);
 
-        if (result != alcove::result::SUCCESS) {
+        if (auto result = alcove::delete_record(record_index); result != alcove::result::SUCCESS) {
             fmt::println("Failed to delete record: {}", alcove::get_alcove_error(result));
             return 1;
         }
 
         fmt::println("Deleted record {}", record_index);
+
+        return 0;
+    }
+    
+    if (result.count("shutdown")) {
+        if (auto result = alcove::clear_records(); result != alcove::result::SUCCESS) {
+            fmt::println("Failed to clear records: {}", alcove::get_alcove_error(result));
+            return 1;
+        }
+
+        fmt::println("Cleared records.");
 
         return 0;
     }

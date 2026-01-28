@@ -1,20 +1,20 @@
 #include "alcove.hpp"
 #include <fmt/format.h>
 #include <fstream>
+#include <sstream>
 
 using namespace alcove;
 
 constexpr char tag[] = "alcove";
 
-result find_record(int idx, int* out_line = nullptr);
-result find_free_idx(int* out_idx = nullptr);
+result find_record(int idx, int* out_line);
+result find_free_idx(int* out_idx);
 std::string format_tag(int idx);
 
 result alcove::add_record(const std::string& ip, const std::string& domain_mask, int* out_idx) {
     int idx;
-    auto result = find_free_idx(&idx);
 
-    if (result != result::SUCCESS) {
+    if (auto result = find_free_idx(&idx); result != result::SUCCESS) {
         return result;
     }
 
@@ -34,8 +34,8 @@ result alcove::add_record(const std::string& ip, const std::string& domain_mask,
 
 result alcove::delete_record(int idx) {
     int record_line;
-    auto result = find_record(idx, &record_line);
-    if (result != result::SUCCESS) {
+    
+    if (auto result = find_record(idx, &record_line); result != result::SUCCESS) {
         return result;
     }
 
@@ -60,6 +60,60 @@ result alcove::delete_record(int idx) {
 
     for (const auto& line : lines) {
         out_hosts << line << '\n';
+    }
+
+    return result::SUCCESS;
+}
+
+result alcove::find_all_records(std::vector<record_entry>* out_record_entries) {
+    std::ifstream hosts("/etc/hosts");
+    if (!hosts.is_open()) {
+        return result::COULD_NOT_OPEN_HOSTS;
+    }
+
+    if (out_record_entries != nullptr) {
+        out_record_entries->clear();
+    }
+
+    std::string line;
+    while (std::getline(hosts, line)) {
+        auto tag_pos = line.find(fmt::format("#{}:", tag));
+        if (tag_pos == std::string::npos) {
+            continue;
+        }
+
+        record_entry record;
+
+        try {
+            record.idx = std::stoi(line.substr(tag_pos + 1 + sizeof(tag) / sizeof(char)));
+        } catch (...) {
+            // ignore invalid comments
+        }
+
+        std::istringstream iss(line);
+
+        if (!(iss >> record.ip >> record.domain)) {
+            continue;
+        }
+
+        if (out_record_entries != nullptr) {
+            out_record_entries->push_back(record);
+        }
+    }
+
+    return result::SUCCESS;
+}
+
+result alcove::clear_records() {
+    std::vector<record_entry> records;
+    if (auto result = find_all_records(&records); result != result::SUCCESS) {
+        return result;
+    }
+    
+    for (const auto& record : records) {
+        if (auto result = delete_record(record.idx); result != result::SUCCESS) {
+            return result;
+        }
     }
 
     return result::SUCCESS;
