@@ -1,0 +1,83 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "default",
+            "hidden": true,
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/out/${presetName}/bin",
+            "installDir": "${sourceDir}/out/${presetName}/install",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+                "VCPKG_FEATURE_FLAGS": "manifests"
+            }
+        },
+        {
+            "name": "osx-base",
+            "inherits": "default",
+            "hidden": true
+        },
+        {
+            "name": "debug-osx-base",
+            "inherits": "osx-base",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "release-osx-base",
+            "inherits": "osx-base",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "debug-osx-intel",
+            "inherits": "debug-osx-base",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-osx"
+            }
+        },
+        {
+            "name": "release-osx-intel",
+            "inherits": "release-osx-base",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-osx"
+            }
+        },
+        {
+            "name": "debug-osx-silicon",
+            "inherits": "debug-osx-base",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "arm64-osx"
+            }
+        },
+        {
+            "name": "release-osx-silicon",
+            "inherits": "release-osx-base",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "arm64-osx"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "debug-osx-intel",
+            "configurePreset": "debug-osx-intel"
+        },
+        {
+            "name": "release-osx-intel",
+            "configurePreset": "release-osx-intel"
+        },
+        {
+            "name": "debug-osx-silicon",
+            "configurePreset": "debug-osx-silicon"
+        },
+        {
+            "name": "release-osx-silicon",
+            "configurePreset": "release-osx-silicon"
+        }
+    ]
+}
