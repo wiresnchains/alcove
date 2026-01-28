@@ -15,8 +15,6 @@ int main(int arg_count, char* args[]) {
         ("d,delete", "Delete a tunnel", cxxopts::value<int>())
         ("s,shutdown", "Delete all active tunnels");
 
-    options.parse_positional({"add"});
-
     cxxopts::ParseResult result;
 
     try {
