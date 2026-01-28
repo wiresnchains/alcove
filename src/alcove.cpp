@@ -11,6 +11,16 @@ result find_record(int idx, int* out_line);
 result find_free_idx(int* out_idx);
 std::string format_tag(int idx);
 
+constexpr auto hosts_path =
+#if defined(_WIN32)
+"C:\\Windows\\System32\\drivers\\etc\\hosts"
+#elif defined(__APPLE__) || defined(__linux__)
+"/etc/hosts"
+#else
+""
+#endif
+;
+
 result alcove::add_record(const std::string& ip, const std::string& domain_mask, int* out_idx) {
     int idx;
 
@@ -18,7 +28,7 @@ result alcove::add_record(const std::string& ip, const std::string& domain_mask,
         return result;
     }
 
-    std::ofstream hosts("/etc/hosts", std::ios::app);
+    std::ofstream hosts(hosts_path, std::ios::app);
     if (!hosts.is_open()) {
         return result::HOSTS_WRITE_FAILED;
     }
@@ -39,7 +49,7 @@ result alcove::delete_record(int idx) {
         return result;
     }
 
-    std::ifstream in_hosts("/etc/hosts");
+    std::ifstream in_hosts(hosts_path);
     if (!in_hosts.is_open()) {
         return result::HOSTS_READ_FAILED;
     }
@@ -53,7 +63,7 @@ result alcove::delete_record(int idx) {
 
     lines.erase(lines.begin() + record_line);
 
-    std::ofstream out_hosts("/etc/hosts", std::ios::trunc);
+    std::ofstream out_hosts(hosts_path, std::ios::trunc);
     if (!out_hosts.is_open()) {
         return result::HOSTS_WRITE_FAILED;
     }
@@ -66,7 +76,7 @@ result alcove::delete_record(int idx) {
 }
 
 result alcove::find_all_records(std::vector<record_entry>* out_record_entries) {
-    std::ifstream hosts("/etc/hosts");
+    std::ifstream hosts(hosts_path);
     if (!hosts.is_open()) {
         return result::HOSTS_READ_FAILED;
     }
@@ -130,7 +140,7 @@ std::string alcove::get_alcove_error(result error) {
 }
 
 result find_record(int idx, int* out_line) {
-    std::ifstream hosts("/etc/hosts");
+    std::ifstream hosts(hosts_path);
     if (!hosts.is_open()) {
         return result::HOSTS_READ_FAILED;
     }
@@ -156,7 +166,7 @@ result find_record(int idx, int* out_line) {
 }
 
 result find_free_idx(int* out_idx) {
-    std::ifstream hosts("/etc/hosts");
+    std::ifstream hosts(hosts_path);
     if (!hosts.is_open()) {
         return result::HOSTS_READ_FAILED;
     }
