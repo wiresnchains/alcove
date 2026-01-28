@@ -7,4 +7,7 @@ add_executable(alcove "src/main.cpp")
 set_property(TARGET alcove PROPERTY CXX_STANDARD 20)
 
 find_package(fmt CONFIG REQUIRED)
+find_package(cxxopts CONFIG REQUIRED)
+
 target_link_libraries(alcove PRIVATE fmt::fmt)
+target_link_libraries(alcove PRIVATE cxxopts::cxxopts)
