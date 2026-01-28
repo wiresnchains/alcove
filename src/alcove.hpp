@@ -7,7 +7,8 @@ namespace alcove {
 
 enum class result {
     SUCCESS,
-    COULD_NOT_OPEN_HOSTS,
+    HOSTS_READ_FAILED,
+    HOSTS_WRITE_FAILED,
     RECORD_NOT_FOUND
 };
 

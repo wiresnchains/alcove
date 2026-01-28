@@ -20,7 +20,7 @@ result alcove::add_record(const std::string& ip, const std::string& domain_mask,
 
     std::ofstream hosts("/etc/hosts", std::ios::app);
     if (!hosts.is_open()) {
-        return result::COULD_NOT_OPEN_HOSTS;
+        return result::HOSTS_WRITE_FAILED;
     }
 
     hosts << fmt::format("{} {} {}\n", ip, domain_mask, format_tag(idx));
@@ -41,7 +41,7 @@ result alcove::delete_record(int idx) {
 
     std::ifstream in_hosts("/etc/hosts");
     if (!in_hosts.is_open()) {
-        return result::COULD_NOT_OPEN_HOSTS;
+        return result::HOSTS_READ_FAILED;
     }
 
     std::vector<std::string> lines;
@@ -55,7 +55,7 @@ result alcove::delete_record(int idx) {
 
     std::ofstream out_hosts("/etc/hosts", std::ios::trunc);
     if (!out_hosts.is_open()) {
-        return result::COULD_NOT_OPEN_HOSTS;
+        return result::HOSTS_WRITE_FAILED;
     }
 
     for (const auto& line : lines) {
@@ -68,7 +68,7 @@ result alcove::delete_record(int idx) {
 result alcove::find_all_records(std::vector<record_entry>* out_record_entries) {
     std::ifstream hosts("/etc/hosts");
     if (!hosts.is_open()) {
-        return result::COULD_NOT_OPEN_HOSTS;
+        return result::HOSTS_READ_FAILED;
     }
 
     if (out_record_entries != nullptr) {
@@ -122,7 +122,8 @@ result alcove::clear_records() {
 std::string alcove::get_alcove_error(result error) {
     switch (error) {
         case result::SUCCESS: return "no error";
-        case result::COULD_NOT_OPEN_HOSTS: return "failed to open hosts for writing";
+        case result::HOSTS_READ_FAILED: return "failed to open hosts for reading";
+        case result::HOSTS_WRITE_FAILED: return "failed to open hosts for writing";
         case result::RECORD_NOT_FOUND: return "record was not found";
         default: return "unknown alcove_result";
     }
@@ -131,7 +132,7 @@ std::string alcove::get_alcove_error(result error) {
 result find_record(int idx, int* out_line) {
     std::ifstream hosts("/etc/hosts");
     if (!hosts.is_open()) {
-        return result::COULD_NOT_OPEN_HOSTS;
+        return result::HOSTS_READ_FAILED;
     }
 
     std::string line;
@@ -157,7 +158,7 @@ result find_record(int idx, int* out_line) {
 result find_free_idx(int* out_idx) {
     std::ifstream hosts("/etc/hosts");
     if (!hosts.is_open()) {
-        return result::COULD_NOT_OPEN_HOSTS;
+        return result::HOSTS_READ_FAILED;
     }
 
     int next_idx = 0;
