@@ -13,71 +13,54 @@
             }
         },
         {
-            "name": "osx-base",
+            "name": "debug-macos-intel",
             "inherits": "default",
-            "hidden": true
-        },
-        {
-            "name": "debug-osx-base",
-            "inherits": "osx-base",
-            "hidden": true,
             "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-osx",
                 "CMAKE_BUILD_TYPE": "Debug"
             }
         },
         {
-            "name": "release-osx-base",
-            "inherits": "osx-base",
-            "hidden": true,
+            "name": "debug-macos-silicon",
+            "inherits": "default",
             "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "arm64-osx",
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "release-macos-intel",
+            "inherits": "default",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-osx",
                 "CMAKE_BUILD_TYPE": "Release"
             }
         },
         {
-            "name": "debug-osx-intel",
-            "inherits": "debug-osx-base",
+            "name": "release-macos-silicon",
+            "inherits": "default",
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-osx"
-            }
-        },
-        {
-            "name": "release-osx-intel",
-            "inherits": "release-osx-base",
-            "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-osx"
-            }
-        },
-        {
-            "name": "debug-osx-silicon",
-            "inherits": "debug-osx-base",
-            "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "arm64-osx"
-            }
-        },
-        {
-            "name": "release-osx-silicon",
-            "inherits": "release-osx-base",
-            "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "arm64-osx"
+                "VCPKG_TARGET_TRIPLET": "arm64-osx",
+                "CMAKE_BUILD_TYPE": "Release"
             }
         }
     ],
     "buildPresets": [
         {
-            "name": "debug-osx-intel",
-            "configurePreset": "debug-osx-intel"
+            "name": "debug-macos-intel",
+            "configurePreset": "debug-macos-intel"
         },
         {
-            "name": "release-osx-intel",
-            "configurePreset": "release-osx-intel"
+            "name": "debug-macos-silicon",
+            "configurePreset": "debug-macos-silicon"
         },
         {
-            "name": "debug-osx-silicon",
-            "configurePreset": "debug-osx-silicon"
+            "name": "release-macos-intel",
+            "configurePreset": "release-macos-intel"
         },
         {
-            "name": "release-osx-silicon",
-            "configurePreset": "release-osx-silicon"
+            "name": "release-macos-silicon",
+            "configurePreset": "release-macos-silicon"
         }
     ]
 }
