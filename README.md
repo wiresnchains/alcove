@@ -7,10 +7,15 @@ Mask local IPs with custom domains for seamless local development.
 To build the project, you will need to install [CMake](https://cmake.org) and [vcpkg](https://github.com/microsoft/vcpkg).
 
 ### Presets
-* `debug-macos-intel`
-* `debug-macos-silicon`
-* `release-macos-intel`
-* `release-macos-silicon`
+
+- `debug-macos-intel`
+- `debug-macos-silicon`
+- `release-macos-intel`
+- `release-macos-silicon`
+- `debug-windows`
+- `release-windows`
+- `debug-linux`
+- `release-linux`
 
 ### Commands
 
