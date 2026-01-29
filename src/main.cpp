@@ -105,7 +105,7 @@ int main(int arg_count, char* args[]) {
         return 0;
     }
     
-    if (result.count("shutdown")) {
+    if (result.count("clear")) {
         if (auto result = alcove::clear_records(); result != alcove::result::SUCCESS) {
             fmt::println("Failed to clear records: {}", alcove::get_alcove_error(result));
             return 1;
