@@ -27,10 +27,12 @@ cmake --build --preset debug-macos-intel
 ## Usage
 
 ```sh
-sudo alcove --help
+alcove --help
 sudo alcove --add mydomain.ltd,192.168.0.1
-sudo alcove --list
+alcove --list
 sudo alcove --delete 0
 ```
 
 Tip: you can also use shorter options such as `-a` instead of `--add`.
+
+Note: The reason why you need to use `sudo` on add/delete/clear commands is the fact that the program edits the hosts file on your system, which requires elevated privileges.
