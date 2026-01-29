@@ -5,8 +5,6 @@
 
 using namespace alcove;
 
-// Core
-
 result alcove::add_record(const std::string& ip, const std::string& domain, int* out_id) {
     if (!util::is_valid_ipv4(ip) && !util::is_valid_ipv6(ip)) {
         return result::INVALID_IP;
