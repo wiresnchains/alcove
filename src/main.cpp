@@ -2,7 +2,27 @@
 #include <fmt/core.h>
 #include "alcove.hpp"
 
-void print_logo();
+constexpr auto BUILD_MODE =
+#if defined(_RELEASE)
+"release"
+#elif defined(_DEBUG)
+"debug"
+#endif
+;
+
+void print_logo() {
+    fmt::println(R"(    ___    __                   
+   /   |  / /________ _   _____ 
+  / /| | / / ___/ __ \ | / / _ \
+ / ___ |/ / /__/ /_/ / |/ /  __/
+/_/  |_/_/\___/\____/|___/\___/
+   
+       alcove v1.1.0 {}
+Mask local IPs with custom domains
+for seamless local development
+)", BUILD_MODE);
+}
+
 
 int main(int arg_count, char* args[]) {
     cxxopts::Options options("alcove", "Mask local IPs with custom domains for seamless local development.");
@@ -96,17 +116,4 @@ int main(int arg_count, char* args[]) {
 
     fmt::println("No options provided, use -h or --help to see a list of all available options");
     return 1;
-}
-
-void print_logo() {
-    fmt::println(R"(    ___    __                   
-   /   |  / /________ _   _____ 
-  / /| | / / ___/ __ \ | / / _ \
- / ___ |/ / /__/ /_/ / |/ /  __/
-/_/  |_/_/\___/\____/|___/\___/
-   
-          alcove v1.1.0
-Mask local IPs with custom domains
-for seamless local development
-)");
 }

@@ -87,8 +87,6 @@ constexpr auto HOSTS_PATH =
 "C:\\Windows\\System32\\drivers\\etc\\hosts"
 #elif defined(__APPLE__) || defined(__linux__)
 "/etc/hosts"
-#else
-""
 #endif
 ;
 

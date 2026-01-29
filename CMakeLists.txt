@@ -6,6 +6,11 @@ add_executable(alcove "src/main.cpp"
     "src/alcove.cpp"
     "src/alcove_util.cpp")
 
+target_compile_definitions(alcove PRIVATE
+    $<$<CONFIG:Debug>:_DEBUG>
+    $<$<CONFIG:Release>:_RELEASE>
+)
+
 set_property(TARGET alcove PROPERTY CXX_STANDARD 20)
 
 find_package(fmt CONFIG REQUIRED)
