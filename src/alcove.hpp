@@ -22,6 +22,4 @@ namespace alcove {
     result delete_record(int id);
     result clear_records();
     result find_all_records(std::vector<record>& out_records);
-
-    std::string get_alcove_error(result error);
 }

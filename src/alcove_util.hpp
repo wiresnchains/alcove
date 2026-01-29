@@ -1,7 +1,6 @@
 #pragma once
 
 #include "alcove.hpp"
-#include <string>
 #include <fstream>
 
 namespace alcove::util {
@@ -18,4 +17,11 @@ namespace alcove::util {
 
     bool is_valid_ipv4(const std::string& str);
     bool is_valid_ipv6(const std::string& str);
+    
+    std::string get_alcove_error(result error);
+
+#if defined(_WIN32)
+    void init_winsocket();
+    void cleanup_winsocket();
+#endif
 }

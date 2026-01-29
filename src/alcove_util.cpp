@@ -1,6 +1,6 @@
 #include "alcove_util.hpp"
 #include <fmt/core.h>
-#include <arpa/inet.h>
+#include <algorithm>
 
 using namespace alcove;
 
@@ -99,12 +99,43 @@ std::ofstream util::open_hosts_for_writing(std::ios_base::openmode mode) {
     return std::ofstream(HOSTS_PATH, mode);
 }
 
+std::string util::get_alcove_error(result error) {
+    switch (error) {
+        case result::SUCCESS: return "no error";
+        case result::HOSTS_READ_FAILED: return "failed to open hosts for reading";
+        case result::HOSTS_WRITE_FAILED: return "failed to open hosts for writing";
+        case result::RECORD_NOT_FOUND: return "record was not found";
+        case result::INVALID_IP: return "invalid ip address";
+        default: return "unknown alcove_result";
+    }
+}
+
+#if defined(_WIN32)
+// goddamn microsoft
+#include <winsock2.h>
+#include <ws2tcpip.h>
+
+#pragma comment(lib, "Ws2_32.lib")
+
+void util::init_winsocket() {
+    WSADATA wsa;
+    WSAStartup(MAKEWORD(2,2), &wsa);
+}
+
+void util::cleanup_winsocket() {
+    WSACleanup();
+}
+
+#elif defined(__APPLE__) || defined(__linux__)
+#include <arpa/inet.h>
+#endif
+
 bool util::is_valid_ipv4(const std::string& str) {
-    sockaddr_in sa;
-    return inet_pton(AF_INET, str.c_str(), &sa.sin_addr) == 1;
+    in_addr addr;
+    return inet_pton(AF_INET, str.c_str(), &addr) == 1;
 }
 
 bool util::is_valid_ipv6(const std::string& str) {
-    sockaddr_in6 sa;
-    return inet_pton(AF_INET6, str.c_str(), &sa.sin6_addr) == 1;
+    in6_addr addr;
+    return inet_pton(AF_INET6, str.c_str(), &addr) == 1;
 }

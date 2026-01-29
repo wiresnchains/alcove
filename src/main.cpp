@@ -1,6 +1,7 @@
-#include <cxxopts.hpp>
-#include <fmt/core.h>
 #include "alcove.hpp"
+#include "alcove_util.hpp"
+#include <cxxopts.hpp>
+#include <fmt/base.h>
 
 constexpr auto BUILD_MODE =
 #if defined(_RELEASE)
@@ -23,8 +24,7 @@ for seamless local development
 )", BUILD_MODE);
 }
 
-
-int main(int arg_count, char* args[]) {
+int _main(int arg_count, char* args[]) {
     cxxopts::Options options("alcove", "Mask local IPs with custom domains for seamless local development.");
 
     options.add_options()
@@ -59,7 +59,7 @@ int main(int arg_count, char* args[]) {
     if (result.count("list")) {
         std::vector<alcove::record> records;
         if (auto result = alcove::find_all_records(records); result != alcove::result::SUCCESS) {
-            fmt::println("Failed to find all records: {}", alcove::get_alcove_error(result));
+            fmt::println("Failed to find all records: {}", alcove::util::get_alcove_error(result));
             return 1;
         }
 
@@ -86,7 +86,7 @@ int main(int arg_count, char* args[]) {
             int record_index;
 
             if (auto result = alcove::add_record(ip, domain_mask, &record_index); result != alcove::result::SUCCESS) {
-                fmt::println("Failed to add record: {}", alcove::get_alcove_error(result));
+                fmt::println("Failed to add record: {}", alcove::util::get_alcove_error(result));
                 return 1;
             }
         }
@@ -98,7 +98,7 @@ int main(int arg_count, char* args[]) {
         auto record_index = result["delete"].as<int>();
 
         if (auto result = alcove::delete_record(record_index); result != alcove::result::SUCCESS) {
-            fmt::println("Failed to delete record: {}", alcove::get_alcove_error(result));
+            fmt::println("Failed to delete record: {}", alcove::util::get_alcove_error(result));
             return 1;
         }
 
@@ -107,7 +107,7 @@ int main(int arg_count, char* args[]) {
     
     if (result.count("clear")) {
         if (auto result = alcove::clear_records(); result != alcove::result::SUCCESS) {
-            fmt::println("Failed to clear records: {}", alcove::get_alcove_error(result));
+            fmt::println("Failed to clear records: {}", alcove::util::get_alcove_error(result));
             return 1;
         }
 
@@ -116,4 +116,18 @@ int main(int arg_count, char* args[]) {
 
     fmt::println("No options provided, use -h or --help to see a list of all available options");
     return 1;
+}
+
+int main(int arg_count, char* args[]) {
+#if defined(_WIN32)
+    alcove::util::init_winsocket();
+#endif
+
+    int res = _main(arg_count, args);
+
+#if defined(_WIN32)
+    alcove::util::cleanup_winsocket();
+#endif
+
+    return res;
 }

@@ -1,3 +1,4 @@
+#include "alcove.hpp"
 #include "alcove_util.hpp"
 #include <fmt/format.h>
 #include <sstream>
@@ -146,17 +147,4 @@ result alcove::find_all_records(std::vector<record>& out_records) {
     }
 
     return result::SUCCESS;
-}
-
-// Utils
-
-std::string alcove::get_alcove_error(result error) {
-    switch (error) {
-        case result::SUCCESS: return "no error";
-        case result::HOSTS_READ_FAILED: return "failed to open hosts for reading";
-        case result::HOSTS_WRITE_FAILED: return "failed to open hosts for writing";
-        case result::RECORD_NOT_FOUND: return "record was not found";
-        case result::INVALID_IP: return "invalid ip address";
-        default: return "unknown alcove_result";
-    }
 }
