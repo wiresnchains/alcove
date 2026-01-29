@@ -28,7 +28,7 @@ cmake --build --preset debug-macos-intel
 
 ```sh
 alcove --help
-sudo alcove --add mydomain.ltd,192.168.0.1
+sudo alcove --add 192.168.0.1,mydomain.ltd
 alcove --list
 sudo alcove --delete 0
 ```
