@@ -10,10 +10,11 @@ int main(int arg_count, char* args[]) {
     options.add_options()
         ("h,help", "Displays help menu")
         ("v,version", "Displays version")
-        ("l,list", "List all active tunnels")
-        ("a,add", "Add a new tunnel", cxxopts::value<std::vector<std::string>>())
-        ("d,delete", "Delete a tunnel", cxxopts::value<int>())
-        ("s,shutdown", "Delete all active tunnels");
+        ("l,list", "List all records")
+        ("m,managed", "List all managed records")
+        ("a,add", "Add a new record", cxxopts::value<std::vector<std::string>>())
+        ("d,delete", "Delete a record", cxxopts::value<int>())
+        ("c,clear", "Delete all managed record");
 
     cxxopts::ParseResult result;
 
@@ -36,14 +37,14 @@ int main(int arg_count, char* args[]) {
     }
     
     if (result.count("list")) {
-        std::vector<alcove::record_entry> records;
-        if (auto result = alcove::find_all_records(&records); result != alcove::result::SUCCESS) {
+        std::vector<alcove::record> records;
+        if (auto result = alcove::find_all_records(records); result != alcove::result::SUCCESS) {
             fmt::println("Failed to find all records: {}", alcove::get_alcove_error(result));
             return 1;
         }
 
         for (const auto& record : records) {
-            fmt::println("{} | {} -> {}", record.idx, record.ip, record.domain);
+            fmt::println("{} | {} -> {}", record.id, record.ip, record.domain);
         }
 
         return 0;
@@ -68,8 +69,6 @@ int main(int arg_count, char* args[]) {
                 fmt::println("Failed to add record: {}", alcove::get_alcove_error(result));
                 return 1;
             }
-
-            fmt::println("Added record {} ({} -> {})", record_index, ip, domain_mask);
         }
 
         return 0;
@@ -83,8 +82,6 @@ int main(int arg_count, char* args[]) {
             return 1;
         }
 
-        fmt::println("Deleted record {}", record_index);
-
         return 0;
     }
     
@@ -93,8 +90,6 @@ int main(int arg_count, char* args[]) {
             fmt::println("Failed to clear records: {}", alcove::get_alcove_error(result));
             return 1;
         }
-
-        fmt::println("Cleared records.");
 
         return 0;
     }
