@@ -8,7 +8,8 @@ namespace alcove {
         SUCCESS,
         HOSTS_READ_FAILED,
         HOSTS_WRITE_FAILED,
-        RECORD_NOT_FOUND
+        RECORD_NOT_FOUND,
+        INVALID_IP
     };
 
     struct record {

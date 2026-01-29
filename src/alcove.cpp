@@ -7,6 +7,10 @@ using namespace alcove;
 // Core
 
 result alcove::add_record(const std::string& ip, const std::string& domain, int* out_id) {
+    if (!util::is_valid_ipv4(ip) && !util::is_valid_ipv6(ip)) {
+        return result::INVALID_IP;
+    }
+
     int id;
     if (auto result = util::find_next_id(id); result != result::SUCCESS) {
         return result;
@@ -152,6 +156,7 @@ std::string alcove::get_alcove_error(result error) {
         case result::HOSTS_READ_FAILED: return "failed to open hosts for reading";
         case result::HOSTS_WRITE_FAILED: return "failed to open hosts for writing";
         case result::RECORD_NOT_FOUND: return "record was not found";
+        case result::INVALID_IP: return "invalid ip address";
         default: return "unknown alcove_result";
     }
 }

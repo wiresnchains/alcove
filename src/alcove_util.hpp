@@ -15,4 +15,7 @@ namespace alcove::util {
     
     std::ifstream open_hosts_for_reading();
     std::ofstream open_hosts_for_writing(std::ios_base::openmode mode = std::ios::app);
+
+    bool is_valid_ipv4(const std::string& str);
+    bool is_valid_ipv6(const std::string& str);
 }
