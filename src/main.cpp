@@ -18,7 +18,7 @@ void print_logo() {
  / ___ |/ / /__/ /_/ / |/ /  __/
 /_/  |_/_/\___/\____/|___/\___/
    
-       alcove v1.1.1 {}
+       alcove v1.1.2 {}
 Mask local IPs with custom domains
 for seamless local development
 )", BUILD_MODE);
