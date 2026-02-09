@@ -23,9 +23,9 @@ result alcove::add_record(const std::string& ip, const std::string& domain, int*
     std::vector<std::string> lines = util::read_lines(read_hosts);
     read_hosts.close();
 
-    auto write_hosts = util::open_temp_hosts_for_writing();
+    auto write_hosts = util::open_temp_hosts_for_writing(std::ios::out | std::ios::trunc);
     if (!write_hosts.is_open()) {
-        return result::HOSTS_WRITE_FAILED;
+        return result::HOSTS_TMP_WRITE_FAILED;
     }
 
     for (const auto& line : lines) {
@@ -59,9 +59,9 @@ result alcove::delete_record(int id) {
     std::vector<std::string> lines = util::read_lines(read_hosts);
     read_hosts.close();
 
-    auto write_hosts = util::open_temp_hosts_for_writing(std::ios::trunc);
+    auto write_hosts = util::open_temp_hosts_for_writing(std::ios::out | std::ios::trunc);
     if (!write_hosts.is_open()) {
-        return result::HOSTS_WRITE_FAILED;
+        return result::HOSTS_TMP_WRITE_FAILED;
     }
 
     bool found = false;
@@ -106,9 +106,9 @@ result alcove::clear_records() {
     std::vector<std::string> lines = util::read_lines(read_hosts);
     read_hosts.close();
 
-    auto write_hosts = util::open_temp_hosts_for_writing(std::ios::trunc);
+    auto write_hosts = util::open_temp_hosts_for_writing(std::ios::out | std::ios::trunc);
     if (!write_hosts.is_open()) {
-        return result::HOSTS_WRITE_FAILED;
+        return result::HOSTS_TMP_WRITE_FAILED;
     }
 
     for (const auto& line : lines) {

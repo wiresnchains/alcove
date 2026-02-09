@@ -8,6 +8,7 @@ namespace alcove {
         SUCCESS,
         HOSTS_READ_FAILED,
         HOSTS_WRITE_FAILED,
+        HOSTS_TMP_WRITE_FAILED,
         RECORD_NOT_FOUND,
         INVALID_IP
     };
