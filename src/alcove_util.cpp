@@ -92,7 +92,7 @@ constexpr auto HOSTS_PATH_TMP = "C:\\Windows\\System32\\drivers\\etc\\hosts.tmp"
 #include <filesystem>
 
 constexpr auto HOSTS_PATH = "/etc/hosts";
-constexpr auto HOSTS_PATH_TMP = "/etc/hosts/hosts.tmp";
+constexpr auto HOSTS_PATH_TMP = "/etc/hosts.tmp";
 #endif
 
 std::ifstream util::open_hosts_for_reading() {
@@ -118,6 +118,7 @@ std::string util::get_alcove_error(result error) {
         case result::SUCCESS: return "no error";
         case result::HOSTS_READ_FAILED: return "failed to open hosts for reading";
         case result::HOSTS_WRITE_FAILED: return "failed to open hosts for writing";
+        case result::HOSTS_TMP_WRITE_FAILED: return "failed to open hosts.tmp for writing";
         case result::RECORD_NOT_FOUND: return "record was not found";
         case result::INVALID_IP: return "invalid ip address";
         default: return "unknown alcove_result";
