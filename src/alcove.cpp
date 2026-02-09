@@ -15,12 +15,29 @@ result alcove::add_record(const std::string& ip, const std::string& domain, int*
         return result;
     }
 
-    auto hosts = util::open_hosts_for_writing();
-    if (!hosts.is_open()) {
+    auto read_hosts = util::open_hosts_for_reading();
+    if (!read_hosts.is_open()) {
+        return result::HOSTS_READ_FAILED;
+    }
+
+    std::vector<std::string> lines = util::read_lines(read_hosts);
+    read_hosts.close();
+
+    auto write_hosts = util::open_temp_hosts_for_writing();
+    if (!write_hosts.is_open()) {
         return result::HOSTS_WRITE_FAILED;
     }
 
-    hosts << fmt::format("{} {} {}\n", ip, domain, util::format_tag(id));
+    for (const auto& line : lines) {
+        write_hosts << line << '\n';
+    }
+
+    write_hosts << fmt::format("{} {} {}\n", ip, domain, util::format_tag(id));
+    write_hosts.close();
+
+    if (!util::replace_temp_hosts()) {
+        return result::HOSTS_WRITE_FAILED;
+    }
 
     fmt::println("Added record {} | {} -> {}", id, ip, domain);
 
@@ -42,7 +59,7 @@ result alcove::delete_record(int id) {
     std::vector<std::string> lines = util::read_lines(read_hosts);
     read_hosts.close();
 
-    auto write_hosts = util::open_hosts_for_writing(std::ios::trunc);
+    auto write_hosts = util::open_temp_hosts_for_writing(std::ios::trunc);
     if (!write_hosts.is_open()) {
         return result::HOSTS_WRITE_FAILED;
     }
@@ -64,6 +81,12 @@ result alcove::delete_record(int id) {
 
         write_hosts << line << '\n';
     }
+    
+    write_hosts.close();
+
+    if (!util::replace_temp_hosts()) {
+        return result::HOSTS_WRITE_FAILED;
+    }
 
     if (!found) {
         return result::RECORD_NOT_FOUND;
@@ -83,7 +106,7 @@ result alcove::clear_records() {
     std::vector<std::string> lines = util::read_lines(read_hosts);
     read_hosts.close();
 
-    auto write_hosts = util::open_hosts_for_writing(std::ios::trunc);
+    auto write_hosts = util::open_temp_hosts_for_writing(std::ios::trunc);
     if (!write_hosts.is_open()) {
         return result::HOSTS_WRITE_FAILED;
     }
@@ -102,6 +125,12 @@ result alcove::clear_records() {
         }
 
         write_hosts << line << '\n';
+    }
+
+    write_hosts.close();
+
+    if (!util::replace_temp_hosts()) {
+        return result::HOSTS_WRITE_FAILED;
     }
 
     return result::SUCCESS;

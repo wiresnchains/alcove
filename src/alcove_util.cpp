@@ -83,20 +83,34 @@ std::string util::get_tag_prefix() {
     return fmt::format("#{}:", MANAGED_RECORD_TAG);
 }
 
-constexpr auto HOSTS_PATH =
 #if defined(_WIN32)
-"C:\\Windows\\System32\\drivers\\etc\\hosts"
+#include <Windows.h>
+
+constexpr auto HOSTS_PATH = "C:\\Windows\\System32\\drivers\\etc\\hosts";
+constexpr auto HOSTS_PATH_TMP = "C:\\Windows\\System32\\drivers\\etc\\hosts.tmp";
 #elif defined(__APPLE__) || defined(__linux__)
-"/etc/hosts"
+#include <filesystem>
+
+constexpr auto HOSTS_PATH = "/etc/hosts";
+constexpr auto HOSTS_PATH_TMP = "/etc/hosts/hosts.tmp";
 #endif
-;
 
 std::ifstream util::open_hosts_for_reading() {
     return std::ifstream(HOSTS_PATH);
 }
 
-std::ofstream util::open_hosts_for_writing(std::ios_base::openmode mode) {
-    return std::ofstream(HOSTS_PATH, mode);
+std::ofstream util::open_temp_hosts_for_writing(std::ios_base::openmode mode) {
+    return std::ofstream(HOSTS_PATH_TMP, mode);
+}
+
+bool util::replace_temp_hosts() {
+#if defined(_WIN32)
+    return ReplaceFile(HOSTS_PATH, HOSTS_PATH_TMP, nullptr, REPLACEFILE_WRITE_THROUGH, nullptr, nullptr) != 0;
+#elif defined(__APPLE__) || defined(__linux__)
+    std::error_code ec;
+    std::filesystem::rename(HOSTS_PATH_TMP, HOSTS_PATH, ec);
+    return !ec;
+#endif
 }
 
 std::string util::get_alcove_error(result error) {
@@ -111,7 +125,6 @@ std::string util::get_alcove_error(result error) {
 }
 
 #if defined(_WIN32)
-// goddamn microsoft
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
@@ -125,7 +138,6 @@ void util::init_winsocket() {
 void util::cleanup_winsocket() {
     WSACleanup();
 }
-
 #elif defined(__APPLE__) || defined(__linux__)
 #include <arpa/inet.h>
 #endif

@@ -13,7 +13,8 @@ namespace alcove::util {
     std::string get_tag_prefix();
     
     std::ifstream open_hosts_for_reading();
-    std::ofstream open_hosts_for_writing(std::ios_base::openmode mode = std::ios::app);
+    std::ofstream open_temp_hosts_for_writing(std::ios_base::openmode mode = std::ios::app);
+    bool replace_temp_hosts();
 
     bool is_valid_ipv4(const std::string& str);
     bool is_valid_ipv6(const std::string& str);
