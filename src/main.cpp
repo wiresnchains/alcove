@@ -1,19 +1,40 @@
-#include <cxxopts.hpp>
-#include <fmt/core.h>
 #include "alcove.hpp"
+#include "alcove_util.hpp"
+#include <cxxopts.hpp>
+#include <fmt/base.h>
 
-void print_logo();
+constexpr auto BUILD_MODE =
+#if defined(_RELEASE)
+"release"
+#elif defined(_DEBUG)
+"debug"
+#endif
+;
 
-int main(int arg_count, char* args[]) {
+void print_logo() {
+    fmt::println(R"(    ___    __                   
+   /   |  / /________ _   _____ 
+  / /| | / / ___/ __ \ | / / _ \
+ / ___ |/ / /__/ /_/ / |/ /  __/
+/_/  |_/_/\___/\____/|___/\___/
+   
+       alcove v1.1.1 {}
+Mask local IPs with custom domains
+for seamless local development
+)", BUILD_MODE);
+}
+
+int _main(int arg_count, char* args[]) {
     cxxopts::Options options("alcove", "Mask local IPs with custom domains for seamless local development.");
 
     options.add_options()
         ("h,help", "Displays help menu")
         ("v,version", "Displays version")
-        ("l,list", "List all active tunnels")
-        ("a,add", "Add a new tunnel", cxxopts::value<std::vector<std::string>>())
-        ("d,delete", "Delete a tunnel", cxxopts::value<int>())
-        ("s,shutdown", "Delete all active tunnels");
+        ("l,list", "List all records")
+        ("m,managed", "List all managed records")
+        ("a,add", "Add a new record", cxxopts::value<std::vector<std::string>>())
+        ("d,delete", "Delete a record", cxxopts::value<int>())
+        ("c,clear", "Delete all managed record");
 
     cxxopts::ParseResult result;
 
@@ -36,14 +57,14 @@ int main(int arg_count, char* args[]) {
     }
     
     if (result.count("list")) {
-        std::vector<alcove::record_entry> records;
-        if (auto result = alcove::find_all_records(&records); result != alcove::result::SUCCESS) {
-            fmt::println("Failed to find all records: {}", alcove::get_alcove_error(result));
+        std::vector<alcove::record> records;
+        if (auto result = alcove::find_all_records(records); result != alcove::result::SUCCESS) {
+            fmt::println("Failed to find all records: {}", alcove::util::get_alcove_error(result));
             return 1;
         }
 
         for (const auto& record : records) {
-            fmt::println("{} | {} -> {}", record.idx, record.ip, record.domain);
+            fmt::println("{} | {} -> {}", record.id, record.ip, record.domain);
         }
 
         return 0;
@@ -65,11 +86,9 @@ int main(int arg_count, char* args[]) {
             int record_index;
 
             if (auto result = alcove::add_record(ip, domain_mask, &record_index); result != alcove::result::SUCCESS) {
-                fmt::println("Failed to add record: {}", alcove::get_alcove_error(result));
+                fmt::println("Failed to add record: {}", alcove::util::get_alcove_error(result));
                 return 1;
             }
-
-            fmt::println("Added record {} ({} -> {})", record_index, ip, domain_mask);
         }
 
         return 0;
@@ -79,22 +98,18 @@ int main(int arg_count, char* args[]) {
         auto record_index = result["delete"].as<int>();
 
         if (auto result = alcove::delete_record(record_index); result != alcove::result::SUCCESS) {
-            fmt::println("Failed to delete record: {}", alcove::get_alcove_error(result));
+            fmt::println("Failed to delete record: {}", alcove::util::get_alcove_error(result));
             return 1;
         }
-
-        fmt::println("Deleted record {}", record_index);
 
         return 0;
     }
     
-    if (result.count("shutdown")) {
+    if (result.count("clear")) {
         if (auto result = alcove::clear_records(); result != alcove::result::SUCCESS) {
-            fmt::println("Failed to clear records: {}", alcove::get_alcove_error(result));
+            fmt::println("Failed to clear records: {}", alcove::util::get_alcove_error(result));
             return 1;
         }
-
-        fmt::println("Cleared records.");
 
         return 0;
     }
@@ -103,15 +118,16 @@ int main(int arg_count, char* args[]) {
     return 1;
 }
 
-void print_logo() {
-    fmt::println(R"(    ___    __                   
-   /   |  / /________ _   _____ 
-  / /| | / / ___/ __ \ | / / _ \
- / ___ |/ / /__/ /_/ / |/ /  __/
-/_/  |_/_/\___/\____/|___/\___/
-   
-          alcove v1.0
-Mask local IPs with custom domains
-for seamless local development
-)");
+int main(int arg_count, char* args[]) {
+#if defined(_WIN32)
+    alcove::util::init_winsocket();
+#endif
+
+    int res = _main(arg_count, args);
+
+#if defined(_WIN32)
+    alcove::util::cleanup_winsocket();
+#endif
+
+    return res;
 }

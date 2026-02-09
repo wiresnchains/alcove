@@ -1,204 +1,177 @@
 #include "alcove.hpp"
+#include "alcove_util.hpp"
 #include <fmt/format.h>
-#include <fstream>
 #include <sstream>
 
 using namespace alcove;
 
-constexpr char tag[] = "alcove";
+result alcove::add_record(const std::string& ip, const std::string& domain, int* out_id) {
+    if (!util::is_valid_ipv4(ip) && !util::is_valid_ipv6(ip)) {
+        return result::INVALID_IP;
+    }
 
-result find_record(int idx, int* out_line);
-result find_free_idx(int* out_idx);
-std::string format_tag(int idx);
-
-constexpr auto hosts_path =
-#if defined(_WIN32)
-"C:\\Windows\\System32\\drivers\\etc\\hosts"
-#elif defined(__APPLE__) || defined(__linux__)
-"/etc/hosts"
-#else
-""
-#endif
-;
-
-result alcove::add_record(const std::string& ip, const std::string& domain_mask, int* out_idx) {
-    int idx;
-
-    if (auto result = find_free_idx(&idx); result != result::SUCCESS) {
+    int id;
+    if (auto result = util::find_next_id(id); result != result::SUCCESS) {
         return result;
     }
 
-    std::ofstream hosts(hosts_path, std::ios::app);
-    if (!hosts.is_open()) {
-        return result::HOSTS_WRITE_FAILED;
-    }
-
-    hosts << fmt::format("{} {} {}\n", ip, domain_mask, format_tag(idx));
-
-    if (out_idx != nullptr) {
-        *out_idx = idx;
-    }
-
-    return result::SUCCESS;
-}
-
-result alcove::delete_record(int idx) {
-    int record_line;
-    
-    if (auto result = find_record(idx, &record_line); result != result::SUCCESS) {
-        return result;
-    }
-
-    std::ifstream in_hosts(hosts_path);
-    if (!in_hosts.is_open()) {
+    auto read_hosts = util::open_hosts_for_reading();
+    if (!read_hosts.is_open()) {
         return result::HOSTS_READ_FAILED;
     }
 
-    std::vector<std::string> lines;
-    std::string line;
-    while (std::getline(in_hosts, line)) {
-        lines.push_back(line);
-    }
-    in_hosts.close();
+    std::vector<std::string> lines = util::read_lines(read_hosts);
+    read_hosts.close();
 
-    lines.erase(lines.begin() + record_line);
-
-    std::ofstream out_hosts(hosts_path, std::ios::trunc);
-    if (!out_hosts.is_open()) {
+    auto write_hosts = util::open_temp_hosts_for_writing();
+    if (!write_hosts.is_open()) {
         return result::HOSTS_WRITE_FAILED;
     }
 
     for (const auto& line : lines) {
-        out_hosts << line << '\n';
+        write_hosts << line << '\n';
+    }
+
+    write_hosts << fmt::format("{} {} {}\n", ip, domain, util::format_tag(id));
+    write_hosts.close();
+
+    if (!util::replace_temp_hosts()) {
+        return result::HOSTS_WRITE_FAILED;
+    }
+
+    fmt::println("Added record {} | {} -> {}", id, ip, domain);
+
+    if (out_id != nullptr) {
+        *out_id = id;
     }
 
     return result::SUCCESS;
 }
 
-result alcove::find_all_records(std::vector<record_entry>* out_record_entries) {
-    std::ifstream hosts(hosts_path);
-    if (!hosts.is_open()) {
+result alcove::delete_record(int id) {
+    auto read_hosts = util::open_hosts_for_reading();
+    if (!read_hosts.is_open()) {
         return result::HOSTS_READ_FAILED;
     }
 
-    if (out_record_entries != nullptr) {
-        out_record_entries->clear();
+    const auto tag = util::format_tag(id);
+
+    std::vector<std::string> lines = util::read_lines(read_hosts);
+    read_hosts.close();
+
+    auto write_hosts = util::open_temp_hosts_for_writing(std::ios::trunc);
+    if (!write_hosts.is_open()) {
+        return result::HOSTS_WRITE_FAILED;
     }
 
-    std::string line;
-    while (std::getline(hosts, line)) {
-        auto tag_pos = line.find(fmt::format("#{}:", tag));
-        if (tag_pos == std::string::npos) {
+    bool found = false;
+    for (const auto& line : lines) {
+        if (auto tag_pos = line.find(tag); tag_pos != std::string::npos) {
+            if (auto id = util::find_id(line); id < 0) {
+                // this should never happen
+                fmt::println("Delected record {} but failed to find ID", line);
+            }
+            else {
+                fmt::println("Deleted record {}", id);
+            }
+
+            found = true;
             continue;
         }
 
-        record_entry record;
+        write_hosts << line << '\n';
+    }
+    
+    write_hosts.close();
 
-        try {
-            record.idx = std::stoi(line.substr(tag_pos + 1 + sizeof(tag) / sizeof(char)));
-        } catch (...) {
-            // ignore invalid comments
-        }
+    if (!util::replace_temp_hosts()) {
+        return result::HOSTS_WRITE_FAILED;
+    }
 
-        std::istringstream iss(line);
-
-        if (!(iss >> record.ip >> record.domain)) {
-            continue;
-        }
-
-        if (out_record_entries != nullptr) {
-            out_record_entries->push_back(record);
-        }
+    if (!found) {
+        return result::RECORD_NOT_FOUND;
     }
 
     return result::SUCCESS;
 }
 
 result alcove::clear_records() {
-    std::vector<record_entry> records;
-    if (auto result = find_all_records(&records); result != result::SUCCESS) {
-        return result;
+    auto read_hosts = util::open_hosts_for_reading();
+    if (!read_hosts.is_open()) {
+        return result::HOSTS_READ_FAILED;
     }
+
+    const auto tag = util::get_tag_prefix();
     
-    for (const auto& record : records) {
-        if (auto result = delete_record(record.idx); result != result::SUCCESS) {
-            return result;
-        }
+    std::vector<std::string> lines = util::read_lines(read_hosts);
+    read_hosts.close();
+
+    auto write_hosts = util::open_temp_hosts_for_writing(std::ios::trunc);
+    if (!write_hosts.is_open()) {
+        return result::HOSTS_WRITE_FAILED;
     }
 
-    return result::SUCCESS;
-}
-
-std::string alcove::get_alcove_error(result error) {
-    switch (error) {
-        case result::SUCCESS: return "no error";
-        case result::HOSTS_READ_FAILED: return "failed to open hosts for reading";
-        case result::HOSTS_WRITE_FAILED: return "failed to open hosts for writing";
-        case result::RECORD_NOT_FOUND: return "record was not found";
-        default: return "unknown alcove_result";
-    }
-}
-
-result find_record(int idx, int* out_line) {
-    std::ifstream hosts(hosts_path);
-    if (!hosts.is_open()) {
-        return result::HOSTS_READ_FAILED;
-    }
-
-    std::string line;
-    int line_number = 0;
-
-    auto record_tag = format_tag(idx);
-
-    while (std::getline(hosts, line)) {
-        if (line.find(record_tag) != std::string::npos) {
-            if (out_line != nullptr) {
-                *out_line = line_number;
+    for (const auto& line : lines) {
+        if (line.find(tag) != std::string::npos) {
+            if (auto id = util::find_id(line); id < 0) {
+                // this should never happen
+                fmt::println("Delected record {} but failed to find ID", line);
             }
-
-            return result::SUCCESS;
-        }
-
-        line_number++;
-    }
-
-    return result::RECORD_NOT_FOUND;
-}
-
-result find_free_idx(int* out_idx) {
-    std::ifstream hosts(hosts_path);
-    if (!hosts.is_open()) {
-        return result::HOSTS_READ_FAILED;
-    }
-
-    int next_idx = 0;
-    std::string line;
-
-    while (std::getline(hosts, line)) {
-        auto pos = line.find("#alcove:");
-
-        if (pos == std::string::npos) {
+            else {
+                fmt::println("Deleted record {}", id);
+            }
+            
             continue;
         }
 
-        try {
-            int idx = std::stoi(line.substr(pos + 1 + sizeof(tag) / sizeof(char)));
-
-            if (idx >= next_idx) {
-                next_idx = idx + 1;
-            }
-        } catch (...) {
-            // ignore invalid comments
-        }
+        write_hosts << line << '\n';
     }
 
-    if (out_idx != nullptr) {
-        *out_idx = next_idx;
+    write_hosts.close();
+
+    if (!util::replace_temp_hosts()) {
+        return result::HOSTS_WRITE_FAILED;
     }
 
     return result::SUCCESS;
 }
 
-std::string format_tag(int index) {
-    return fmt::format("#{}:{}", tag, index);
+result alcove::find_all_records(std::vector<record>& out_records) {
+    auto hosts = util::open_hosts_for_reading();
+    if (!hosts.is_open()) {
+        return result::HOSTS_READ_FAILED;
+    }
+
+    const auto tag_prefix = util::get_tag_prefix();
+
+    std::string line;
+    while (std::getline(hosts, line)) {
+        auto tag_pos = line.find(tag_prefix);
+
+        if (tag_pos == std::string::npos) {
+            continue;
+        }
+
+        auto id = util::find_id(line);
+
+        if (id < 0) {
+            // this should never happen
+            fmt::println("Record {} has an invalid id", line);
+            continue;
+        }
+
+        record record;
+
+        record.id = id;
+
+        std::istringstream iss(line);
+        if (!(iss >> record.ip >> record.domain)) {
+            fmt::println("Record {} has an invalid format", line);
+            continue;
+        }
+
+        out_records.push_back(record);
+    }
+
+    return result::SUCCESS;
 }
